@@ -1,10 +1,27 @@
 package com.example.ordersaga;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
-public interface StockClient {
+@Component
+public class StockClient {
 
-    @GetExchange("${stock.saga.inventory-path:/api/inventory/{productId}}")
-    QuantityResponse getQuantity(@PathVariable String productId);
+    private final RestClient stockSagaRestClient;
+    private final String inventoryPath;
+
+    public StockClient(
+            RestClient stockSagaRestClient,
+            @Value("${stock.saga.inventory-path:/api/inventory/{productId}}") String inventoryPath
+    ) {
+        this.stockSagaRestClient = stockSagaRestClient;
+        this.inventoryPath = inventoryPath;
+    }
+
+    public QuantityResponse getQuantity(String productId) {
+        return stockSagaRestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(inventoryPath).build(productId))
+                .retrieve()
+                .body(QuantityResponse.class);
+    }
 }
