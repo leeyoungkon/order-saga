@@ -5,6 +5,6 @@ import org.springframework.web.service.annotation.GetExchange;
 
 public interface StockClient {
 
-    @GetExchange("/api/inventory/{productId}")
+    @GetExchange("${stock.saga.inventory-path:/api/inventory/{productId}}")
     QuantityResponse getQuantity(@PathVariable String productId);
 }
