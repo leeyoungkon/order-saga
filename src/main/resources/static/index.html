@@ -251,6 +251,15 @@
     statusBox.className = isError ? 'status error' : 'status';
   }
 
+  function formatEventType(eventType) {
+    const normalized = (eventType || '').trim().toLowerCase();
+    if (normalized === 'paymentcompleted') return 'PaymentCompleted (결제 완료)';
+    if (normalized === 'paymentfailed') return 'PaymentFailed (결제 실패)';
+    if (normalized === 'stockreserved') return 'StockReserved (재고 예약)';
+    if (normalized === 'stockreleased') return 'StockReleased (재고 해제)';
+    return eventType || '-';
+  }
+
   async function loadEvents() {
     try {
       const res = await fetch('/orders/events');
@@ -266,11 +275,12 @@
       eventBody.innerHTML = events.map((e) => {
         const createdAt = e.createdAt ? new Date(e.createdAt).toLocaleString() : '-';
         const reason = e.reason ? e.reason : '';
+        const eventTypeLabel = formatEventType(e.eventType);
         return `
           <tr>
             <td>${createdAt}</td>
             <td><span class="badge">${e.source || '-'}</span></td>
-            <td>${e.eventType || '-'}</td>
+            <td>${eventTypeLabel}</td>
             <td>${e.orderId || '-'}</td>
             <td>${reason}</td>
           </tr>

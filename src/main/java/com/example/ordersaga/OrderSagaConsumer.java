@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -15,6 +17,7 @@ public class OrderSagaConsumer {
 
     @KafkaListener(topics = "stock-events", groupId = "order-service-group")
     public void consumeStockEvent(SagaEvent event) {
+        event.setEventType(normalizeEventType(event.getEventType()));
         log.info("[ORDER] stock event received = {}", event);
         orderSagaService.logIncomingEvent("STOCK_SERVICE", event);
 
@@ -26,6 +29,7 @@ public class OrderSagaConsumer {
 
     @KafkaListener(topics = "payment-events", groupId = "order-service-group")
     public void consumePaymentEvent(SagaEvent event) {
+        event.setEventType(normalizeEventType(event.getEventType()));
         log.info("[ORDER] payment event received = {}", event);
         orderSagaService.logIncomingEvent("PAYMENT_SERVICE", event);
 
@@ -33,5 +37,19 @@ public class OrderSagaConsumer {
             case "PaymentCompleted" -> orderSagaService.markCompleted(event.getOrderId());
             case "PaymentFailed" -> orderSagaService.cancelOrder(event.getOrderId(), event.getReason());
         }
+    }
+
+    private String normalizeEventType(String eventType) {
+        if (eventType == null) {
+            return "";
+        }
+        String normalized = eventType.trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "stockreserved" -> "StockReserved";
+            case "stockreleased" -> "StockReleased";
+            case "paymentcompleted" -> "PaymentCompleted";
+            case "paymentfailed" -> "PaymentFailed";
+            default -> eventType;
+        };
     }
 }
