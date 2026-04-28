@@ -20,7 +20,7 @@ public class OrderSagaConsumer {
 
         switch (event.getEventType()) {
             case "StockReserved" -> orderSagaService.markStockReserved(event.getOrderId());
-            case "StockFailed" -> orderSagaService.cancelOrder(event.getOrderId(), event.getReason());
+            case "StockReleased" -> orderSagaService.cancelOrder(event.getOrderId(), event.getReason());
         }
     }
 
