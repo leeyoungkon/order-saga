@@ -43,61 +43,74 @@ public class OrderSagaService {
 
     public void markStockReserved(String orderId) {
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order != null && order.getStatus() != OrderStatus.CANCELLED) {
-            order.setStatus(OrderStatus.STOCK_RESERVED);
-            orderRepository.save(order);
-            
-            SagaEvent event = new SagaEvent(
-                    "StockReserved",
-                    orderId,
-                    order.getProductId(),
-                    order.getQuantity(),
-                    order.getAmount(),
-                    null
-            );
-            sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", event));
+        if (order == null || order.getStatus() != OrderStatus.CREATED) {
+            return;
         }
+
+        order.setStatus(OrderStatus.STOCK_RESERVED);
+        orderRepository.save(order);
+
+        SagaEvent event = new SagaEvent(
+                "StockReserved",
+                orderId,
+                order.getProductId(),
+                order.getQuantity(),
+                order.getAmount(),
+                null
+        );
+        sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", event));
     }
 
     public void markCompleted(String orderId) {
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order != null && order.getStatus() != OrderStatus.CANCELLED) {
-            order.setStatus(OrderStatus.COMPLETED);
-            orderRepository.save(order);
-            
-            SagaEvent event = new SagaEvent(
-                    "OrderCompleted",
-                    orderId,
-                    order.getProductId(),
-                    order.getQuantity(),
-                    order.getAmount(),
-                    null
-            );
-            sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", event));
+        if (order == null || order.getStatus() != OrderStatus.STOCK_RESERVED) {
+            return;
         }
+
+        order.setStatus(OrderStatus.COMPLETED);
+        orderRepository.save(order);
+
+        SagaEvent event = new SagaEvent(
+                "OrderCompleted",
+                orderId,
+                order.getProductId(),
+                order.getQuantity(),
+                order.getAmount(),
+                null
+        );
+        sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", event));
     }
 
     public void cancelOrder(String orderId, String reason) {
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order != null) {
-            order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
-
-            SagaEvent cancelEvent = new SagaEvent(
-                    "OrderCancelled",
-                    order.getOrderId(),
-                    order.getProductId(),
-                    order.getQuantity(),
-                    order.getAmount(),
-                    reason
-            );
-            sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", cancelEvent));
-            orderProducer.publishOrderCancelled(cancelEvent);
+        if (order == null || order.getStatus() == OrderStatus.CANCELLED) {
+            return;
         }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+
+        SagaEvent cancelEvent = new SagaEvent(
+                "OrderCancelled",
+                order.getOrderId(),
+                order.getProductId(),
+                order.getQuantity(),
+                order.getAmount(),
+                reason
+        );
+        sagaEventLogRepository.save(SagaEventLog.of("ORDER_SERVICE", cancelEvent));
+        orderProducer.publishOrderCancelled(cancelEvent);
     }
 
     public void logIncomingEvent(String source, SagaEvent event) {
         sagaEventLogRepository.save(SagaEventLog.of(source, event));
+    }
+
+    public boolean isDuplicateIncomingEvent(String source, SagaEvent event) {
+        if (isBlank(event.getEventId())) {
+            return false;
+        }
+        return sagaEventLogRepository.existsBySourceAndEventId(source, event.getEventId());
     }
 
     public Collection<Order> findAll() {

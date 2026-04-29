@@ -18,6 +18,10 @@ public class OrderSagaConsumer {
     @KafkaListener(topics = "stock-events", groupId = "order-service-group")
     public void consumeStockEvent(SagaEvent event) {
         event.setEventType(normalizeEventType(event.getEventType()));
+        if (orderSagaService.isDuplicateIncomingEvent("STOCK_SERVICE", event)) {
+            log.info("[ORDER] duplicate stock event ignored. eventId={}, orderId={}", event.getEventId(), event.getOrderId());
+            return;
+        }
         log.info("[ORDER] stock event received = {}", event);
         orderSagaService.logIncomingEvent("STOCK_SERVICE", event);
 
@@ -30,6 +34,10 @@ public class OrderSagaConsumer {
     @KafkaListener(topics = "payment-events", groupId = "order-service-group")
     public void consumePaymentEvent(SagaEvent event) {
         event.setEventType(normalizeEventType(event.getEventType()));
+        if (orderSagaService.isDuplicateIncomingEvent("PAYMENT_SERVICE", event)) {
+            log.info("[ORDER] duplicate payment event ignored. eventId={}, orderId={}", event.getEventId(), event.getOrderId());
+            return;
+        }
         log.info("[ORDER] payment event received = {}", event);
         orderSagaService.logIncomingEvent("PAYMENT_SERVICE", event);
 
