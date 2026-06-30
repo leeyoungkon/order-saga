@@ -15,13 +15,9 @@ spring:
           time_zone: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE:Asia/Seoul}
     open-in-view: false
 
-stock:
-  saga:
-    url: ${STOCK_SAGA_URL:http://stock-saga-service:8080}
-    inventory-path: ${STOCK_SAGA_INVENTORY_PATH:/api/inventory/{productId}}
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: my-cluster-kafka-bootstrap:9092
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
@@ -32,3 +28,10 @@ stock:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+
+stock:
+  saga:
+    url: ${STOCK_SAGA_URL:http://stock-saga-service:8080}
+    inventory-path: ${STOCK_SAGA_INVENTORY_PATH:/api/inventory/{productId}}
+

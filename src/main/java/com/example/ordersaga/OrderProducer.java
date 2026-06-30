@@ -1,6 +1,5 @@
 package com.example.ordersaga;
 
-import com.example.ordersaga.SagaEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

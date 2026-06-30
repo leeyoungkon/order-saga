@@ -27,6 +27,7 @@ public class OrderSagaConsumer {
 
         switch (event.getEventType()) {
             case "StockReserved" -> orderSagaService.markStockReserved(event.getOrderId());
+            case "StockFailed" -> orderSagaService.cancelOrder(event.getOrderId(), event.getReason());
             case "StockReleased" -> orderSagaService.cancelOrder(event.getOrderId(), event.getReason());
         }
     }
@@ -54,6 +55,7 @@ public class OrderSagaConsumer {
         String normalized = eventType.trim().toLowerCase(Locale.ROOT);
         return switch (normalized) {
             case "stockreserved" -> "StockReserved";
+            case "stockfailed" -> "StockFailed";
             case "stockreleased" -> "StockReleased";
             case "paymentcompleted" -> "PaymentCompleted";
             case "paymentfailed" -> "PaymentFailed";

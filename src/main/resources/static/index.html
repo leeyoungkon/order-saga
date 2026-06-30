@@ -256,7 +256,9 @@
     if (normalized === 'paymentcompleted') return 'PaymentCompleted (결제 완료)';
     if (normalized === 'paymentfailed') return 'PaymentFailed (결제 실패)';
     if (normalized === 'stockreserved') return 'StockReserved (재고 예약)';
+    if (normalized === 'stockfailed') return 'StockFailed (재고 부족/실패)';
     if (normalized === 'stockreleased') return 'StockReleased (재고 해제)';
+    if (normalized === 'ordercancelled') return 'OrderCancelled (주문 취소)';
     return eventType || '-';
   }
 
