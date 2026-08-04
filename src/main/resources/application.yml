@@ -17,7 +17,7 @@ spring:
 
 
   kafka:
-    bootstrap-servers: my-cluster-kafka-bootstrap:9092
+    bootstrap-servers: my-cluster-kafka-bootstrap.kafka:9092
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
